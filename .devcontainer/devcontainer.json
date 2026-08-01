@@ -1,0 +1,21 @@
+{
+  "name": "OpenCode Workspace",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  
+  "features": {
+    "ghcr.io/danzilberdan/devcontainers/opencode:0": {}
+  },
+
+  "postCreateCommand": "opencode --version",
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        // Add any VS Code extensions you want pre-installed here
+      ]
+    }
+  }
+}
