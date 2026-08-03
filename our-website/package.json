@@ -33,7 +33,9 @@
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.3",
     "@vitejs/plugin-react": "^6.0.4",
+    "http-server": "^14.1.1",
     "oxlint": "^1.75.0",
+    "serve": "^14.2.6",
     "typescript": "~6.0.2",
     "vite": "^8.2.0",
     "vite-plugin-compression": "^0.5.1"
