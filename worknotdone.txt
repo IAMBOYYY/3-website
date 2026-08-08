@@ -187,10 +187,21 @@ Resume from deepseekwork.txt. Wants a fully 3D professional website like igloo.i
 7. Review-driven fixes: camera fly-through on load (init to HERO_CAM_START), progress bar inversion, unreachable error UI (overlay shows while loading||error), dead retry path (key remount), per-frame Vector3 alloc, impure useMemo, PerformanceMonitor onChange conflict, dim connectome.
 8. Verified end-to-end: build ✓, lint 0 errors ✓, 14/14 section sweep ✓, retry flow (block->error UI->retry->recover) ✓, mobile no overflow ✓, 0 console errors ✓, screenshots inspected ✓.
 
---- NEXT STEPS FOR USER ---
-1. cd /workspaces/3-website/our-website && node server.js (after npm run build) -> open http://localhost:5000.
-2. Check it on a real GPU + phone for final beauty pass.
-3. Optional: tune deep-structure markers in src/data/brainData.ts.
-4. Commit + push when you want (not done in this session).
+--- SESSION 5 CONTINUATION (2026-08-08, same day) ---
+User reported 404 on the forwarded port (server had died during idle) and asked to commit + push.
+
+Actions:
+1. Confirmed the server was only temporarily down -> restarted, verified HTTP 200 on port 5000.
+2. Fixed GitHub Pages base path: repo is IAMBOYYY/3-website (a PROJECT page), so assets must live under /3-website/. Updated vite.config.ts to read GH_PAGES env -> base '/3-website/' (local stays '/'); index.html now uses %BASE_URL% for favicon + model preload; .github/workflows/deploy.yml passes GH_PAGES=true to the Build step.
+3. Verified BOTH build modes: local -> /favicon.svg (server 200); GH_PAGES=true -> /3-website/favicon.svg + /3-website/assets/* (correct).
+4. Staged site source + models + draco decoder + session logs; left the temp dev scripts (.click-*.cjs, .shot-*.cjs, preview.cjs, symlinks models/ & draco/) untracked as before (they are local-only tools, documented as deletable).
+5. COMMITTED: d32d96d "Session 5: 3x lighter brain model, reliable retry-on-error loading, neural scan lab redesign with new hero, connectome + signal trails, GitHub Pages base fix" (26 files, +2704/-718).
+6. PUSHED to origin main: 14fdbd0..d32d96d.
+
+NEXT STEPS FOR USER (when you wake up):
+1. View locally: cd our-website && node server.js -> http://localhost:5000 (ask the assistant to restart if idle-killed).
+2. Get the PERMANENT URL: github.com/IAMBOYYY/3-website -> Settings -> Pages -> Source: "GitHub Actions". After the workflow runs, the site is live at https://IAMBOYYY.github.io/3-website/ forever.
+3. Final beauty pass on a real GPU/phone; optionally tune deep markers in src/data/brainData.ts.
+4. All session work is committed on main; nothing else to push except future edits.
 
 === END OF SESSION 5 ===

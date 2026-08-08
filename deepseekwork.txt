@@ -1,7 +1,8 @@
 =========================================================
   DEEPSEEKWORK.TXT — MASTER SESSION LOG & HANDBOOK
   Project: "Neuroverse" — 3D Human Brain interactive website
-  Last updated: 2026-08-08 (Session 5)
+  Last updated: 2026-08-08 (Session 5, evening)
+  Git: main @ d32d96d (Session 5 commit, PUSHED to origin)
   IMPORTANT: Read this file fully before doing anything.
 =========================================================
 
@@ -158,6 +159,18 @@ our-website/
       Chrome.tsx          Brand, TopHud, ProgressBar, DotNav, LoadingOverlay
       icons.tsx           inline SVG icon set
   .github/workflows/deploy.yml   GitHub Pages deploy
+
+---------------------------------------------------------
+ 4.5 GITHUB PAGES (SET UP THIS SESSION)
+---------------------------------------------------------
+- Repo: IAMBOYYY/3-website (PROJECT page).
+- vite.config.ts: base = GH_PAGES env ? '/3-website/' : '/'  (local stays '/').
+- index.html uses %BASE_URL% for favicon + model preload.
+- .github/workflows/deploy.yml passes GH_PAGES=true on Build.
+- BOTH modes verified: local -> /favicon.svg; GH_PAGES -> /3-website/...
+- USER MUST ENABLE: repo Settings -> Pages -> Source: "GitHub Actions".
+  Then the site is live forever at https://IAMBOYYY.github.io/3-website/
+  (no port forwarding, works on any device).
 
 ---------------------------------------------------------
  5. HOW TO RUN / BUILD / TEST
