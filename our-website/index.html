@@ -2,9 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>our-website</title>
+    <meta
+      name="description"
+      content="An interactive 3D scan of the human brain. Scroll to dissect every region — from the frontal lobe to the brainstem."
+    />
+    <meta name="theme-color" content="#05060b" />
+    <meta property="og:title" content="Neuroverse — The Human Brain in 3D" />
+    <meta
+      property="og:description"
+      content="A scroll-driven 3D anatomy scan of the most complex structure in the known universe."
+    />
+    <link rel="preload" href="%BASE_URL%models/brain.glb" as="fetch" type="model/gltf-binary" crossorigin />
+    <title>Neuroverse — The Human Brain in 3D</title>
   </head>
   <body>
     <div id="root"></div>

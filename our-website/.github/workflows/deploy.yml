@@ -32,6 +32,8 @@ jobs:
           cd our-website
           npm ci
       - name: Build
+        env:
+          GH_PAGES: 'true'
         run: |
           cd our-website
           npm run build

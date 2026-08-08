@@ -1,0 +1,240 @@
+=========================================================
+  DEEPSEEKWORK.TXT — MASTER SESSION LOG & HANDBOOK
+  Project: "Neuroverse" — 3D Human Brain interactive website
+  Last updated: 2026-08-08 (Session 5)
+  IMPORTANT: Read this file fully before doing anything.
+=========================================================
+
+---------------------------------------------------------
+ 1. DIRECT ANSWER — IS THE WEBSITE WORKING?
+---------------------------------------------------------
+YES ✅ — VERIFIED WORKING on 2026-08-08 (Session 5).
+
+Verified evidence (all automated, headless Chromium + SwiftShader):
+- `npm run build`  →  PASSES (TypeScript + Vite, ~2-5s)
+- `npm run lint`   →  0 errors (warnings only on minified draco files)
+- Server on port 5000 → HTTP 200
+- Loading overlay clears, WebGL canvas renders, 14 sections detected,
+  0 console errors, 0 page errors
+- Scroll sweep through ALL 14 sections → every section activates
+  in order (0..13 = PASS)
+- RETRY FLOW TESTED: blocking brain.glb → "Scan interrupted" error UI
+  appears → unblock + click "Retry scan" → model loads → overlay clears
+  (fixes the old "sometimes loads, sometimes not" bug)
+- Mobile 390px viewport: no horizontal overflow
+- Screenshots verified: hero (outline title + brain entrance), frontal
+  (card + marker), deep x-ray (wireframe shell + glowing marker), finale
+
+To VIEW it:
+  1. cd /workspaces/3-website/our-website && npm run build
+  2. node server.js   (serves dist/ on port 5000)
+  3. Open http://localhost:5000/ (forward the port in Codespaces, Public)
+
+---------------------------------------------------------
+ 2. WHAT THE SITE IS (as of Session 5)
+---------------------------------------------------------
+"Neuroverse — The Human Brain in 3D"
+A premium scroll-driven single-page site in a new "neural scan lab"
+aesthetic (Igloo.inc-inspired restraint: near-black obsidian, ice-white
+typography, JetBrains Mono HUD, single scan-cyan accent, per-region
+accent colors as the only color moments).
+
+- Giant outline typography hero ("THE HUMAN BRAIN") with an MRI-style
+  scanline sweep, HUD corner labels, mono stat grid, and a scroll-driven
+  camera/scale entrance: the brain approaches from afar as you scroll.
+- A real 3D brain (374k tris, Draco) + a 10k-tri wireframe "hologram
+  shell" that brightens in x-ray mode.
+- 3D connectome: faint lines between region markers; edges of the active
+  region light up in its accent color.
+- Neural signal trail: a glowing pulse travels from the previous region's
+  marker to the current one whenever you enter a section.
+- X-ray scan pulse: a diagnostic ring sweeps through the brain while a
+  deep structure section is active.
+- Clickable exploration dots on every region → smooth-scroll to section.
+- 12 regions with markers, glow color per region, 3D labels, glass-free
+  editorial cards (hairlines + mono indices — no big backdrop-blur).
+
+Stack: React 19 + Vite 8 + TypeScript + Tailwind v4
+       + react-three-fiber / drei / three
+       + GSAP ScrollTrigger + Lenis (smooth scroll)
+       + Framer Motion + self-hosted fonts (Inter, Space Grotesk,
+         JetBrains Mono)
+
+---------------------------------------------------------
+ 3. WHAT I DID THIS SESSION (Session 5)
+---------------------------------------------------------
+A. PERFORMANCE (the lag)
+   - Model: simplified 1,133,000 → 373,871 triangles with gltf-transform
+     (`weld` + `simplify --ratio 0.3`), re-Draco'd → public/models/brain.glb
+     (1.1 MB). Render + Draco-decode cost ~3x lower. Visually identical
+     (smooth organic surface).
+   - New public/models/brain-wire.glb: 10k tris / 53 KB hologram shell.
+   - dpr capped [1, 1.75] + AdaptiveQuality (PerformanceMonitor) that
+     steps dpr 1.75 → 1.5 → 1.25 → 1 when the GPU struggles.
+   - Removed per-frame debug allocations in BrainModel (no more
+     __markerScreens/__camPos arrays every frame; only __scrollActive,
+     written on change).
+   - SignalTrail/Connectome use shared scratch vectors (no GC pressure).
+   - Removed backdrop-filter from cards (large blurred surfaces repaint
+     on scroll = jank). Cards are translucent solids + hairlines now.
+   - Removed body background-attachment:fixed (mobile Safari repaint).
+   - StarField reduced 850 → 520 points.
+
+B. RELIABILITY (the "sometimes doesn't load")
+   - Root cause: useGLTF caches failures + a blind 15s timeout meant one
+     network blip = permanent failure with no retry.
+   - LoadingOverlay now shows REAL progress via drei useProgress with a
+     believable creep readout (12%→90%), then 100% on completion.
+   - ModelBoundary error boundary catches load failures → App shows the
+     "Scan interrupted" UI with a RETRY button.
+   - Retry busts the useGLTF cache with a `?r=N` query and remounts via
+     `key={retryKey}` (boundary reset). Safety timeout raised to 30s and
+     resets on retry.
+   - `<link rel="preload">` for brain.glb in index.html starts the fetch
+     before JS boots.
+
+C. NEW DESIGN SYSTEM (index.css)
+   - "Neural scan lab": bg #05060b obsidian, text #c9cde0, hairline
+     borders, accent = scan-cyan #7be8ff. Region colors stay per-section.
+   - Fonts: Inter (body), Space Grotesk (display), JetBrains Mono (HUD/
+     indices/stats — new dependency @fontsource/jetbrains-mono).
+   - .display-outline (text-stroke outline), .hero-title, .scanline
+     sweep keyframe, .vignette, .mono, .glass-card (no blur).
+
+D. HERO (the "nobody has done this" section)
+   - Giant outlined "THE HUMAN BRAIN" (BRAIN in gradient) with the 3D
+     brain visible through the strokes.
+   - MRI scanline sweep + HUD frame (Subject 03 / Scan 01 / coordinates /
+     neurons online) + mono stat grid (86B neurons etc.).
+   - Scroll choreography: camera flies from (0,1.3,-6.8) to the frontal
+     pose (0,1.2,-5.4) and the brain scales 0.82→1 — ends seamlessly at
+     section 1 (no fly-through through the mesh).
+
+E. SECTIONS / CHROME
+   - RegionCard: editorial mono index (01/12), accent spine, ghost
+     outline number, two-column function list with numbered items,
+     big mono stat. No heavy blur.
+   - DotNav: right rail with live "05 / 14 — FRONTAL LOBE" readout and
+     per-region accent active dots. TopHud top-right. Finale with
+     "Replay the scan" → scroll to top.
+
+F. BUGS FIXED DURING REVIEW (code-reviewer-deepseek-flash)
+   - Camera no longer starts at z=-5.4 then damps to z=+6.1 (would have
+     flown through the brain on load). Now starts at HERO_CAM_START.
+   - LoadingOverlay progress inversion (was showing 100% while loading).
+   - Error UI was unreachable (overlay unmounted on error) — overlay now
+     shows while `loading || error`.
+   - Retry path dead (boundary kept `failed` state) — key remount.
+   - Per-frame `new THREE.Vector3()` in SignalTrail → module scratch vec.
+   - Impure useMemo (colorAttr ref) → moved to useEffect.
+   - PerformanceMonitor onChange fought incline/decline → removed.
+   - Base connectome too dim → brighter #55628f at 0.5 opacity.
+
+---------------------------------------------------------
+ 4. FILE MAP
+---------------------------------------------------------
+our-website/
+  package.json            + @fontsource/jetbrains-mono
+  vite.config.ts          base:'/', manualChunks function form
+  server.js               static server for dist/ on port 5000
+  index.html              meta + preload brain.glb
+  public/
+    models/brain.glb      1.1MB, 374k tris (Draco)
+    models/brain-wire.glb 53KB, 10k tris hologram shell
+    draco/                offline Draco decoders
+    favicon.svg, icons.svg
+  src/
+    App.tsx               Lenis + ScrollTrigger, active section, retryKey,
+                          loading/error state, safety timeout (30s)
+    main.tsx              fonts (Inter, Space Grotesk, JetBrains Mono)
+    index.css             "neural scan lab" design system
+    scrollState.ts        mutable { progress, local, active, rotY }
+    data/brainData.ts     12 regions + heroStats
+    components/
+      BrainScene.tsx      Canvas: model + wire shell, connectome, signal
+                          trail, scan pulse, markers, camera rig, starfield,
+                          adaptive quality, error boundary
+      Sections.tsx        Hero (outline title + HUD), RegionCard, Finale
+      Chrome.tsx          Brand, TopHud, ProgressBar, DotNav, LoadingOverlay
+      icons.tsx           inline SVG icon set
+  .github/workflows/deploy.yml   GitHub Pages deploy
+
+---------------------------------------------------------
+ 5. HOW TO RUN / BUILD / TEST
+---------------------------------------------------------
+  cd /workspaces/3-website/our-website
+  npm install                 # if node_modules missing
+  npm run dev                 # dev server on :5173
+  npm run build               # tsc -b && vite build → dist/
+  npm run lint                # oxlint (0 errors expected)
+  node server.js              # serves dist/ on :5000
+  node .smoke.cjs             # quick headless smoke test (needs server on 5000)
+  node .quicktest.cjs         # full sweep + screenshots + click test
+
+Model optimization pipeline (if model ever changes):
+  npx gltf-transform weld in.glb welded.glb
+  npx gltf-transform simplify --ratio 0.3 --error 0.0001 welded.glb solid.glb
+  npx gltf-transform draco solid.glb brain.glb
+  (wire shell: simplify --ratio 0.01 --error 0.5 after weld → draco)
+  NOTE: `--ratio` alone fails on this mesh; the default --error 0.0001
+  constraint halts aggressive simplification — relax it for low-poly.
+
+---------------------------------------------------------
+ 6. KNOWN ISSUES / NOTES
+---------------------------------------------------------
+[!] Headless SwiftShader is a software GPU: model decode takes ~10-13s in
+    tests. On a real GPU expect 1-3s. Not a site problem.
+[!] Marker click-test via raw mouse clicks is flaky in SwiftShader
+    (raycast + RAF timing). The real nav path (DotNav + lenis scrollTo)
+    works and is the supported way.
+[!] Deep-structure markers (corpus callosum etc.) are anatomically
+    reasonable but were placed by reasoning + ASCII preview, not
+    pixel-perfect tuning. Nudge in brainData.ts if any looks off.
+[!] GitHub Pages: workflow exists; base:'/' for root hosting, '/REPO/'
+    for project pages. Enable Pages → GitHub Actions in repo settings.
+[!] Old dev/test scripts (.click-*.cjs, .shot-*.cjs, etc.) still reference
+    debug hooks (__camPos, __markerScreens) that were REMOVED for
+    performance — those specific scripts may error; use .smoke.cjs /
+    .quicktest.cjs (which only need __lenis + __scrollActive, both kept).
+[ ] Real-GPU visual QA + phone check still worthwhile (Safari).
+[ ] Optional future: PWA, og:image, hover tooltips on markers, replace
+    model with part-separated anatomical GLB if a better one is found.
+
+---------------------------------------------------------
+ 7. ARCHITECTURE NOTES FOR THE NEXT AI
+---------------------------------------------------------
+- DOM index vs brainSections index: scrollState.active = DOM section
+  index (0 hero, 1-12 regions, 13 finale). Map with `active-1` for
+  brainSections. All consumers (BrainModel glow, CameraRig, Connectome,
+  SignalTrail, ScanPulse, markers) already do this.
+- Model space: max dimension 2.6, centered. Front = -Z, back = +Z,
+  up = +Y. Markers/cameras in brainData use this space.
+- Markers are SIBLINGS of the scaled model group (inside the intro group)
+  — never inside the scaled group or they crush to the origin.
+- Hero camera start = HERO_CAM_START (0,1.3,-6.8); scrollState.local in
+  the hero (0→1) drives the approach, ending exactly on the frontal pose.
+- useGLTF caches by URL; retry uses `?r=N` suffix + key remount.
+- PerformanceMonitor steps dpr down; do NOT re-add per-frame debug hooks.
+- Lenis instance exposed as window.__lenis (used by nav + tests).
+
+---------------------------------------------------------
+ 8. HISTORY
+---------------------------------------------------------
+- Session 1-3: scaffold, hosting fixes, GH Pages workflow.
+- Session 4: fixed build-blocking vite.config bug, 6→12 regions, x-ray,
+  3D labels, clickable dots, marker-scale + camera off-by-one fixes.
+- Session 5 (this one): model 1.13M→374k tris, hologram wire shell,
+  adaptive DPR, real loading progress + retry-on-error, full "neural scan
+  lab" redesign, new hero, connectome + signal trails + scan pulse,
+  review-driven bug fixes, end-to-end verification.
+
+---------------------------------------------------------
+ 9. NEXT SESSION CHEAT-SHEET
+---------------------------------------------------------
+ 1. Read worknotdone.txt + this file.
+ 2. `cd our-website && npm run build` → confirm pass.
+ 3. `node server.js` → check http://localhost:5000.
+ 4. `node .smoke.cjs` / `node .quicktest.cjs` for automated verification.
+ 5. Optional: real-GPU visual QA; tune deep markers; mobile Safari check.
+ 6. Commit + push when the user asks.
+=========================================================
